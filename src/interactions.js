@@ -172,6 +172,10 @@ async function routeCommand(interaction) {
 export async function handleInteraction({ headers, rawBody }) {
   const signature = headers['x-signature-ed25519'];
   const timestamp = headers['x-signature-timestamp'];
+  if (!signature || !timestamp || !config.discordPublicKey) {
+    return json(401, { error: 'Bad request signature' });
+  }
+
   const isValidRequest = verifyKey(rawBody, signature, timestamp, config.discordPublicKey);
 
   if (!isValidRequest) return json(401, { error: 'Bad request signature' });
