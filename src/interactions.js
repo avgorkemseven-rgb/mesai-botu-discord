@@ -176,7 +176,7 @@ export async function handleInteraction({ headers, rawBody }) {
     return json(401, { error: 'Bad request signature' });
   }
 
-  const isValidRequest = verifyKey(rawBody, signature, timestamp, config.discordPublicKey);
+  const isValidRequest = await verifyKey(rawBody, signature, timestamp, config.discordPublicKey);
 
   if (!isValidRequest) return json(401, { error: 'Bad request signature' });
 
