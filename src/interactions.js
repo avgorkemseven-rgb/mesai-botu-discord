@@ -1,6 +1,6 @@
 import { InteractionResponseType, InteractionType, verifyKey } from 'discord-interactions';
 import { config } from './config.js';
-import { sendLog, panelPayload, sendChannelMessage, userMention } from './discord.js';
+import { panelPayload, sendLog, startButtonRow, stopButtonRow, userMention } from './discord.js';
 import { getSupabase } from './supabase.js';
 import { formatDateTime, formatDuration, periodLabel } from './time.js';
 import { getActiveUsers, getLeaderboard, getUserStats } from './stats.js';
@@ -15,15 +15,24 @@ function interactionResponse(type, data) {
   return json(200, { type, data });
 }
 
-function ephemeral(content) {
+function ephemeral(content, components = []) {
   return interactionResponse(InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, {
     content,
+    components,
     flags: EPHEMERAL,
   });
 }
 
 function optionValue(interaction, name, fallback) {
   return interaction.data?.options?.find((option) => option.name === name)?.value ?? fallback;
+}
+
+function firstOptionValue(interaction, names, fallback) {
+  for (const name of names) {
+    const value = optionValue(interaction, name);
+    if (value !== undefined) return value;
+  }
+  return fallback;
 }
 
 function guildIdOf(interaction) {
@@ -33,7 +42,7 @@ function guildIdOf(interaction) {
 function assertStatsChannel(interaction) {
   if (!config.statsChannelId) return null;
   if (interaction.channel_id === config.statsChannelId) return null;
-  return `Bu komutlari <#${config.statsChannelId}> kanalinda kullanmalisin.`;
+  return `Bu komutları <#${config.statsChannelId}> kanalında kullanmalısın.`;
 }
 
 async function startShift(interaction) {
@@ -51,7 +60,10 @@ async function startShift(interaction) {
 
   if (activeError) throw activeError;
   if (active) {
-    return ephemeral(`Zaten mesaidesin. Baslangic: ${formatDateTime(active.started_at)}`);
+    return ephemeral(
+      `**Zaten mesaidesin.**\nBaşlangıç: ${formatDateTime(active.started_at)}`,
+      [stopButtonRow()],
+    );
   }
 
   const { data, error } = await supabase
@@ -62,8 +74,11 @@ async function startShift(interaction) {
 
   if (error) throw error;
 
-  await sendLog(`${userMention(userId)} mesaiye basladi. Saat: ${formatDateTime(data.started_at)}`);
-  return ephemeral(`Mesain basladi. Baslangic: ${formatDateTime(data.started_at)}`);
+  await sendLog(`${userMention(userId)} mesaiye başladı. Başlangıç: ${formatDateTime(data.started_at)}`);
+  return ephemeral(
+    `**Mesain başladı.**\nBaşlangıç: ${formatDateTime(data.started_at)}`,
+    [stopButtonRow()],
+  );
 }
 
 async function stopShift(interaction) {
@@ -81,7 +96,7 @@ async function stopShift(interaction) {
 
   if (activeError) throw activeError;
   if (!active) {
-    return ephemeral('Acik mesain yok. Once mesai baslatmalisin.');
+    return ephemeral('**Açık mesain yok.**\nÖnce mesai başlatmalısın.', [startButtonRow()]);
   }
 
   const endedAt = new Date();
@@ -93,8 +108,8 @@ async function stopShift(interaction) {
 
   if (error) throw error;
 
-  await sendLog(`${userMention(userId)} mesaiyi bitirdi. Sure: ${formatDuration(durationSeconds)}`);
-  return ephemeral(`Mesain kapatildi. Toplam sure: ${formatDuration(durationSeconds)}`);
+  await sendLog(`${userMention(userId)} mesaiyi bitirdi. Süre: ${formatDuration(durationSeconds)}`);
+  return ephemeral(`**Mesain kapatıldı.**\nToplam süre: ${formatDuration(durationSeconds)}`, [startButtonRow()]);
 }
 
 async function commandStats(interaction) {
@@ -103,15 +118,15 @@ async function commandStats(interaction) {
     return ephemeral(channelError);
   }
 
-  const userId = optionValue(interaction, 'kullanici', interaction.member?.user?.id || interaction.user?.id);
-  const period = optionValue(interaction, 'donem', 'hafta');
+  const userId = firstOptionValue(interaction, ['kullanıcı', 'kullanici'], interaction.member?.user?.id || interaction.user?.id);
+  const period = firstOptionValue(interaction, ['dönem', 'donem'], 'hafta');
   const stats = await getUserStats(guildIdOf(interaction), userId, period);
 
   return ephemeral(
-      `**${periodLabel(period)} Mesai Istatistigi**\n` +
-      `Kisi: ${userMention(userId)}\n` +
+      `**${periodLabel(period)} Mesai İstatistiği**\n` +
+      `Kişi: ${userMention(userId)}\n` +
       `Toplam: **${formatDuration(stats.total)}**\n` +
-      `Mesai sayisi: **${stats.count}**\n` +
+      `Mesai sayısı: **${stats.count}**\n` +
       `Ortalama: **${formatDuration(stats.average)}**`,
   );
 }
@@ -122,17 +137,17 @@ async function commandLeaderboard(interaction) {
     return ephemeral(channelError);
   }
 
-  const period = optionValue(interaction, 'donem', 'hafta');
+  const period = firstOptionValue(interaction, ['dönem', 'donem'], 'hafta');
   const limit = Math.min(Number(optionValue(interaction, 'limit', 10)), 20);
   const rows = await getLeaderboard(guildIdOf(interaction), period, limit);
-  return ephemeral(`**${periodLabel(period)} Siralama**\n${rows.length ? rows.join('\n') : 'Henuz tamamlanmis mesai yok.'}`);
+  return ephemeral(`**${periodLabel(period)} Sıralama**\n${rows.length ? rows.join('\n') : 'Henüz tamamlanmış mesai yok.'}`);
 }
 
 async function commandActive(interaction) {
   const rows = await getActiveUsers(guildIdOf(interaction));
   const content = rows.length
-    ? rows.map((row) => `${userMention(row.user_id)} - ${formatDateTime(row.started_at)} tarihinden beri mesaide`).join('\n')
-    : 'Su anda mesaide olan kimse yok.';
+    ? rows.map((row) => `${userMention(row.user_id)} — ${formatDateTime(row.started_at)} tarihinden beri mesaide`).join('\n')
+    : 'Şu anda mesaide olan kimse yok.';
 
   return ephemeral(`**Aktif Mesailer**\n${content}`);
 }
@@ -141,8 +156,8 @@ async function commandPanel(interaction) {
   const targetChannelId = optionValue(interaction, 'kanal', config.startChannelId);
   if (targetChannelId && targetChannelId !== interaction.channel_id) {
     return ephemeral(
-      `Paneli <#${targetChannelId}> kanalina gondermek icin terminalden \`npm run panel\` calistir. ` +
-        'Discord zaman asimina takilmamak icin slash komutu paneli yalnizca kullanildigi kanala aninda gonderir.',
+      `Paneli <#${targetChannelId}> kanalına göndermek için terminalden \`npm run panel\` çalıştır. ` +
+        'Discord zaman aşımına takılmamak için slash komutu paneli yalnızca kullanıldığı kanala anında gönderir.',
     );
   }
 
@@ -160,9 +175,9 @@ async function commandClose(interaction) {
 async function routeCommand(interaction) {
   const name = interaction.data?.name;
   if (name === 'istatistik') return commandStats(interaction);
-  if (name === 'siralama') return commandLeaderboard(interaction);
-  if (name === 'haftalik-lider') {
-    return commandLeaderboard({ ...interaction, data: { ...interaction.data, options: [{ name: 'donem', value: 'hafta' }] } });
+  if (name === 'siralama' || name === 'sıralama') return commandLeaderboard(interaction);
+  if (name === 'haftalik-lider' || name === 'haftalık-lider') {
+    return commandLeaderboard({ ...interaction, data: { ...interaction.data, options: [{ name: 'dönem', value: 'hafta' }] } });
   }
   if (name === 'aktifler') return commandActive(interaction);
   if (name === 'mesai-panel') return commandPanel(interaction);
@@ -198,9 +213,9 @@ export async function handleInteraction({ headers, rawBody }) {
       return routeCommand(interaction);
     }
 
-    return ephemeral('Bu etkilesim desteklenmiyor.');
+    return ephemeral('Bu etkileşim desteklenmiyor.');
   } catch (error) {
     console.error(error);
-    return ephemeral('Bir hata olustu. Loglari kontrol et.');
+    return ephemeral('Bir hata oluştu. Logları kontrol et.');
   }
 }

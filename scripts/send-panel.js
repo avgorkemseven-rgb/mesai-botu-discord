@@ -9,4 +9,4 @@ if (!config.startChannelId) {
 }
 
 await sendChannelMessage(config.startChannelId, panelPayload());
-console.log('Mesai paneli gonderildi.');
+console.log('Mesai paneli gönderildi.');

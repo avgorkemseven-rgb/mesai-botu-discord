@@ -4,8 +4,8 @@ export function formatDuration(totalSeconds) {
   const seconds = Math.max(0, Number(totalSeconds || 0));
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
-  if (hours === 0) return `${minutes} dk`;
-  return `${hours} sa ${minutes} dk`;
+  const remainingSeconds = seconds % 60;
+  return `${hours} sa ${minutes} dk ${remainingSeconds} sn`;
 }
 
 export function formatDateTime(value) {
@@ -53,7 +53,7 @@ function zonedMidnightIso(year, month, day) {
 
 export function getPeriodStart(period, now = new Date()) {
   const parts = zonedParts(now);
-  if (period === 'gun') {
+  if (period === 'gün' || period === 'gun') {
     return zonedMidnightIso(parts.year, parts.month, parts.day);
   }
   if (period === 'hafta') {
@@ -70,9 +70,11 @@ export function getPeriodStart(period, now = new Date()) {
 
 export function periodLabel(period) {
   return {
-    gun: 'Bugun',
+    gün: 'Bugün',
+    gun: 'Bugün',
     hafta: 'Bu hafta',
     ay: 'Bu ay',
-    tum: 'Tum zamanlar',
+    tüm: 'Tüm zamanlar',
+    tum: 'Tüm zamanlar',
   }[period] || 'Bu hafta';
 }

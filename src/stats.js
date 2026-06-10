@@ -47,7 +47,7 @@ export async function getLeaderboard(guildId, period, limit = 10) {
   return [...totals.entries()]
     .sort((a, b) => b[1] - a[1])
     .slice(0, limit)
-    .map(([userId, total], index) => `${index + 1}. ${userMention(userId)} - ${formatDuration(total)}`);
+    .map(([userId, total], index) => `**${index + 1}.** ${userMention(userId)} — ${formatDuration(total)}`);
 }
 
 export async function getActiveUsers(guildId) {

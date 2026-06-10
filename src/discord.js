@@ -38,27 +38,37 @@ export async function sendLog(content) {
   return sendChannelMessage(config.logChannelId, { content, allowed_mentions: { parse: ['users'] } });
 }
 
-export function panelPayload() {
+export function startButtonRow() {
   return {
-    content: '**Mesai Paneli**\nMesaine baslamak veya bitirmek icin asagidaki butonlari kullan.',
+    type: 1,
     components: [
       {
-        type: 1,
-        components: [
-          {
-            type: 2,
-            custom_id: 'shift_start',
-            label: 'Mesai Baslat',
-            style: 3,
-          },
-          {
-            type: 2,
-            custom_id: 'shift_stop',
-            label: 'Mesai Bitir',
-            style: 4,
-          },
-        ],
+        type: 2,
+        custom_id: 'shift_start',
+        label: 'Mesai Başlat',
+        style: 3,
       },
     ],
+  };
+}
+
+export function stopButtonRow() {
+  return {
+    type: 1,
+    components: [
+      {
+        type: 2,
+        custom_id: 'shift_stop',
+        label: 'Mesai Bitir',
+        style: 4,
+      },
+    ],
+  };
+}
+
+export function panelPayload() {
+  return {
+    content: '**Mesai Paneli**\nMesaini başlatmak için aşağıdaki butonu kullan. Başlattıktan sonra mesai bitirme butonu sana özel olarak görünecek.',
+    components: [startButtonRow()],
   };
 }

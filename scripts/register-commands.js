@@ -5,46 +5,46 @@ import { discordRequest } from '../src/discord.js';
 requireConfig();
 
 const periodChoices = [
-  { name: 'Bugun', value: 'gun' },
+  { name: 'Bugün', value: 'gün' },
   { name: 'Bu hafta', value: 'hafta' },
   { name: 'Bu ay', value: 'ay' },
-  { name: 'Tum zamanlar', value: 'tum' },
+  { name: 'Tüm zamanlar', value: 'tüm' },
 ];
 
 const commands = [
   {
     name: 'istatistik',
-    description: 'Kendi veya bir kisinin mesai istatistigini gosterir.',
+    description: 'Kendi veya bir kişinin mesai istatistiğini gösterir.',
     options: [
       {
-        name: 'donem',
-        description: 'Hangi donem hesaplansin?',
+        name: 'dönem',
+        description: 'Hangi dönem hesaplansın?',
         type: 3,
         required: false,
         choices: periodChoices,
       },
       {
-        name: 'kullanici',
-        description: 'Istatistigi gorulecek kullanici.',
+        name: 'kullanıcı',
+        description: 'İstatistiği görülecek kullanıcı.',
         type: 6,
         required: false,
       },
     ],
   },
   {
-    name: 'siralama',
-    description: 'Mesai lider tablosunu gosterir.',
+    name: 'sıralama',
+    description: 'Mesai lider tablosunu gösterir.',
     options: [
       {
-        name: 'donem',
-        description: 'Hangi donem siralansin?',
+        name: 'dönem',
+        description: 'Hangi dönem sıralansın?',
         type: 3,
         required: false,
         choices: periodChoices,
       },
       {
         name: 'limit',
-        description: 'Kac kisi listelensin? En fazla 20.',
+        description: 'Kaç kişi listelensin? En fazla 20.',
         type: 4,
         required: false,
         min_value: 1,
@@ -53,21 +53,21 @@ const commands = [
     ],
   },
   {
-    name: 'haftalik-lider',
-    description: 'Bu haftanin mesai liderlerini gosterir.',
+    name: 'haftalık-lider',
+    description: 'Bu haftanın mesai liderlerini gösterir.',
   },
   {
     name: 'aktifler',
-    description: 'Su anda mesaide olanlari listeler.',
+    description: 'Şu anda mesaide olanları listeler.',
   },
   {
     name: 'mesai-panel',
-    description: 'Mesai baslatma/bitirme panelini kullanildigi kanala gonderir.',
+    description: 'Mesai başlatma panelini kullanıldığı kanala gönderir.',
     default_member_permissions: '16',
   },
   {
     name: 'mesai-kapat',
-    description: 'Acik kalmis kendi mesaini kapatir.',
+    description: 'Açık kalmış kendi mesaini kapatır.',
   },
 ];
 
