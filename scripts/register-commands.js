@@ -62,17 +62,8 @@ const commands = [
   },
   {
     name: 'mesai-panel',
-    description: 'Mesai baslatma/bitirme panelini kanala gonderir.',
+    description: 'Mesai baslatma/bitirme panelini kullanildigi kanala gonderir.',
     default_member_permissions: '16',
-    options: [
-      {
-        name: 'kanal',
-        description: 'Panelin gonderilecegi kanal.',
-        type: 7,
-        required: false,
-        channel_types: [0],
-      },
-    ],
   },
   {
     name: 'mesai-kapat',

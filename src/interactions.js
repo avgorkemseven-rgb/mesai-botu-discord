@@ -139,12 +139,14 @@ async function commandActive(interaction) {
 
 async function commandPanel(interaction) {
   const targetChannelId = optionValue(interaction, 'kanal', config.startChannelId);
-  if (!targetChannelId) {
-    return ephemeral('Panel gonderilecek kanal bulunamadi. START_CHANNEL_ID ayarla veya komutta kanal sec.');
+  if (targetChannelId && targetChannelId !== interaction.channel_id) {
+    return ephemeral(
+      `Paneli <#${targetChannelId}> kanalina gondermek icin terminalden \`npm run panel\` calistir. ` +
+        'Discord zaman asimina takilmamak icin slash komutu paneli yalnizca kullanildigi kanala aninda gonderir.',
+    );
   }
 
-  await sendChannelMessage(targetChannelId, panelPayload());
-  return ephemeral(`Mesai paneli <#${targetChannelId}> kanalina gonderildi.`);
+  return interactionResponse(InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, panelPayload());
 }
 
 async function commandClose(interaction) {
